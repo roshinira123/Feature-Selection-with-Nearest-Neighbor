@@ -12,31 +12,57 @@ def load_data(filename):
                 if values: 
                     data.append(values)
 
-        if not data: #if the dataset is empty or not formatted correctly
+        if not data: #checks if the dataset is empty or not formatted correctly
             print("Error: The file is empty or not formatted correctly.")
             return None, None
 
-        # Extract class labels (first column) and features (remaining columns)
-        y = [row[0] for row in data]  # Class labels
-        x = [row[1:] for row in data]  # Feature values
+      
+        y = [row[0] for row in data]  # Class labels -1st
+        x = [row[1:] for row in data]  # Feature values -2nd
 
         print("Successfully loaded dataset!")
         return x, y
     
     #other exceptions 
     except FileNotFoundError:
-        print("Error: The file was not found.")
+        print("The file was not found.")
         return None, None
     except ValueError:
-        print("Error: Could not convert data to float.")
+        print("Could not convert data")
         return None, None
 
 #def euclideanDist for nearest neighbor 
+def euclideanDist(x1, x2): #works
+    distance = 0
+    for i in range(len(x1)):
+        difference = x1[i] - x2[i]  
+        squared = difference ** 2  
+        distance += squared
+    return math.sqrt(distance) 
+
+#def leaveoneoutcrossvalidation
+
+
+#def nearest neighbor
+def nearestNeighbor(trainX, trainY, testVal): #works
+    minDist = float("inf") #stores min dist
+    NN = 0 #gets the nearest neighbor
+    
+    for i in range(len(trainX)):
+        dist = euclideanDist(trainX[i], testVal) #Computes the dist
+        #compares new value with old val and assigns closet neighbor
+        if dist < minDist:  
+            minDist = dist
+            NN = trainY[i]
+
+    return NN 
 
 #def forward selection 
 
 
+
 #def backwards elimination
+
 
 
 #def main
@@ -53,6 +79,10 @@ def main():
     num_instances = len(x)
     print(f"\nThis dataset has {num_features} features with {num_instances} instances.")
 
+    # train_X = [[1, 2], [3, 4], [5, 6]]
+    # train_y = [1, 1, 0]
+    # test_point = [2, 3]
+    # print("Predicted Label:", nearestNeighbor(train_X, train_y, test_point)) #testing NN
 
 
 
