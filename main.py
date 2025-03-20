@@ -41,7 +41,39 @@ def euclideanDist(x1, x2): #works
     return math.sqrt(distance) 
 
 #def leaveoneoutcrossvalidation
+def loocv(X, y, features = None): 
+    correct = 0 #stores correct predict
+    total = len(X) #total instances
 
+    for i in range(total):
+        #if no feature is selected then use all the features in the set
+        if features is None:
+            trainX = []
+            #build training set w/o test val
+            for j, row in enumerate(X):
+                if j != i:
+                    trainX.append(row)
+                    #use curr data point as test val
+            test_point = X[i]
+        else:
+            trainX = []
+            #build set only w/ selected features
+            for j, row in enumerate(X):
+                if j != i:
+                    selected_features = [row[f] for f in features]
+                    trainX.append(selected_features)
+            test_point = [X[i][f] for f in features]
+        #build label set off of curr data point
+        trainY = []
+        for j in range(total):
+            if j != i:
+                trainY.append(y[j])
+        label = y[i]
+        #predict the label using nearest neighbor
+        predicted_label = nearestNeighbor(trainX, trainY, test_point)
+        if predicted_label == label:
+            correct += 1 #increment correct if predicted label is correct
+    return correct / total
 
 #def nearest neighbor
 def nearestNeighbor(trainX, trainY, testVal): #works
@@ -58,7 +90,39 @@ def nearestNeighbor(trainX, trainY, testVal): #works
     return NN 
 
 #def forward selection 
+def forwardSelection(x, y): 
 
+    currFeatures = []
+    num_features = len(x[0])
+    bestFeatures = []
+    bestOverallaccuracy = 0
+
+
+    print("\nBeginning search.")
+
+    for i in range(num_features): #iterates thru all features 
+        feature_to_add = None #tracks whther that feature is best or not
+        best_accuracy = 0 #stores best accuracy
+
+        for k in range(num_features):
+
+            if k not in currFeatures: #checks if feature is already in the set
+                #does loocv with curr features + new feature
+                accuracy = loocv(x, y, currFeatures + [k])
+
+                print("\t"+ f"Using feature(s) {{{', '.join(str(f+1) for f in currFeatures + [k])}}} accuracy is {accuracy * 100:.1f}%")
+                if accuracy > best_accuracy: #updates for best accuracy 
+                    best_accuracy = accuracy
+                    feature_to_add = k
+        #if feature was found add to current feature set
+        if feature_to_add is not None:
+            currFeatures.append(feature_to_add)
+            print(f"Feature set {{{', '.join(str(f+1) for f in currFeatures)}}} was best, accuracy is {best_accuracy * 100:.1f}%")
+            if best_accuracy > bestOverallaccuracy:
+                bestOverallaccuracy = best_accuracy
+                bestFeatures = list(currFeatures)
+
+    print(f"\nFinished search!! The best feature subset is {{{', '.join(str(f+1) for f in bestFeatures)}}}, which has an accuracy of {bestOverallaccuracy * 100:.1f}%") #prints out the best overall accuracy
 
 
 #def backwards elimination
@@ -84,6 +148,8 @@ def main():
     # test_point = [2, 3]
     # print("Predicted Label:", nearestNeighbor(train_X, train_y, test_point)) #testing NN
 
+   
+    #forwardSelection(x, y) #works - testing for forward selection
 
 
 
