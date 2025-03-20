@@ -1,5 +1,5 @@
 import math 
-#import copy 
+import copy 
 import time
 
 #def loadData 
@@ -60,9 +60,13 @@ def loocv(X, y, features = None):
             #build set only w/ selected features
             for j, row in enumerate(X):
                 if j != i:
-                    selected_features = [row[f] for f in features]
+                    selected_features = []
+                    for f in features:
+                            selected_features.append(row[f])
                     trainX.append(selected_features)
-            test_point = [X[i][f] for f in features]
+            test_point = []
+            for f in features:
+                test_point.append(X[i][f])
         #build label set off of curr data point
         trainY = []
         for j in range(total):
@@ -93,18 +97,18 @@ def nearestNeighbor(trainX, trainY, testVal): #works
 def forwardSelection(x, y): 
 
     currFeatures = []
-    num_features = len(x[0])
-    bestFeatures = []
+    numFeatures = len(x[0])
+    bestOverallFeatures = []
     bestOverallaccuracy = 0
 
 
     print("\nBeginning search.")
 
-    for i in range(num_features): #iterates thru all features 
+    for i in range(numFeatures): #iterates thru all features 
         feature_to_add = None #tracks whther that feature is best or not
         best_accuracy = 0 #stores best accuracy
 
-        for j in range(num_features):
+        for j in range(numFeatures):
 
             if j not in currFeatures: #checks if feature is already in the set
                 #does loocv with curr features + new feature
@@ -120,11 +124,11 @@ def forwardSelection(x, y):
             print(f"Feature set {{{', '.join(str(f+1) for f in currFeatures)}}} was best, accuracy is {best_accuracy * 100:.1f}%")
             if best_accuracy > bestOverallaccuracy:
                 bestOverallaccuracy = best_accuracy
-                bestFeatures = list(currFeatures)
+                bestOverallFeatures = list(currFeatures)
             else: #added warning
                 print("Warning: Accuracy has decreased! Continuing search in case of local maxima." + f"Feature set {{{', '.join(str(f+1) for f in currFeatures)}}} was best, accuracy is {best_accuracy * 100:.1f}%")
 
-    print(f"\nFinished search!! The best feature subset is {{{', '.join(str(f+1) for f in bestFeatures)}}}, which has an accuracy of {bestOverallaccuracy * 100:.1f}%") #prints out the best overall accuracy
+    print(f"\nFinished search!! The best feature subset is {{{', '.join(str(f+1) for f in bestOverallFeatures)}}}, which has an accuracy of {bestOverallaccuracy * 100:.1f}%") #prints out the best overall accuracy
 
 
 #def backwards elimination
@@ -142,16 +146,17 @@ def backwardsElimination(x, y):
         best_accuracy = 0 #tracks best accuracy val
 
         for i in currFeatures: #iterates thru the curr set of features 
-           tempFeature = [] #temp feature set not including the curr feature
-           for f in currFeatures:
-                if f != i:
-                    tempFeature.append(f)
-           accuracy = loocv(x, y, tempFeature)
-           print("\t"+ f"Using feature(s) {{{', '.join(str(f+1) for f in tempFeature)}}} accuracy is {accuracy * 100:.1f}%")
-           if accuracy > best_accuracy:
-                best_accuracy = accuracy
-                removedFeature = i #removes if features improves accuracy
-        #if feature was removed, update the curr set of features
+            tempFeature = copy.copy(currFeatures) #replaced using a temp variable with copy to create a shallow copy to improve preformance
+            
+            tempFeature.remove(i) #removes copied feature
+
+            #gets loocv for tempFeature set
+            accuracy = loocv(x, y, tempFeature)
+            print("\t"+ f"Using feature(s) {{{', '.join(str(f+1) for f in tempFeature)}}} accuracy is {accuracy * 100:.1f}%")
+            if accuracy > best_accuracy:
+                    best_accuracy = accuracy
+                    removedFeature = i #removes if features improves accuracy
+            #if feature was removed, update the curr set of features
         if removedFeature is not None:
             currFeatures.remove(removedFeature)
             print(f"Feature set {{{', '.join(str(f+1) for f in currFeatures)}}} was best, accuracy is {best_accuracy * 100:.1f}%")
@@ -207,7 +212,7 @@ def main():
     # train_X = [[1, 2], [3, 4], [5, 6]]
     # train_y = [1, 1, 0]
     # test_point = [2, 3]
-    # print("Predicted Label:", nearestNeighbor(train_X, train_y, test_point)) #testing NN
+    # print(nearestNeighbor(train_X, train_y, test_point)) #testing NN
     #forwardSelection(x, y) #works - testing for forward selection
     #backwardsElimination(x, y) #works - testing for backward elimination
 
