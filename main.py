@@ -1,6 +1,6 @@
 import math 
-import copy 
-
+#import copy 
+import time
 
 #def loadData 
 def load_data(filename):
@@ -104,16 +104,16 @@ def forwardSelection(x, y):
         feature_to_add = None #tracks whther that feature is best or not
         best_accuracy = 0 #stores best accuracy
 
-        for k in range(num_features):
+        for j in range(num_features):
 
-            if k not in currFeatures: #checks if feature is already in the set
+            if j not in currFeatures: #checks if feature is already in the set
                 #does loocv with curr features + new feature
-                accuracy = loocv(x, y, currFeatures + [k])
+                accuracy = loocv(x, y, currFeatures + [j])
 
-                print("\t"+ f"Using feature(s) {{{', '.join(str(f+1) for f in currFeatures + [k])}}} accuracy is {accuracy * 100:.1f}%")
+                print("\t"+ f"Using feature(s) {{{', '.join(str(f+1) for f in currFeatures + [j])}}} accuracy is {accuracy * 100:.1f}%")
                 if accuracy > best_accuracy: #updates for best accuracy 
                     best_accuracy = accuracy
-                    feature_to_add = k
+                    feature_to_add = j
         #if feature was found add to current feature set
         if feature_to_add is not None:
             currFeatures.append(feature_to_add)
@@ -121,12 +121,47 @@ def forwardSelection(x, y):
             if best_accuracy > bestOverallaccuracy:
                 bestOverallaccuracy = best_accuracy
                 bestFeatures = list(currFeatures)
+            else: #added warning
+                print("Warning: Accuracy has decreased! Continuing search in case of local maxima." + f"Feature set {{{', '.join(str(f+1) for f in currFeatures)}}} was best, accuracy is {best_accuracy * 100:.1f}%")
 
     print(f"\nFinished search!! The best feature subset is {{{', '.join(str(f+1) for f in bestFeatures)}}}, which has an accuracy of {bestOverallaccuracy * 100:.1f}%") #prints out the best overall accuracy
 
 
 #def backwards elimination
+def backwardsElimination(x, y):
 
+    numFeatures = len(x[0]) #Gets total num of features 
+    currFeatures = list(range(numFeatures)) #Gets curr set to include all features 
+    bestOverallFeatures = list(currFeatures) #Stores best overall feature
+    bestOverallAccuracy = loocv(x, y, currFeatures) # Gets best overall accuracy
+
+    print("\nBeginning search.")
+
+    while len(currFeatures) > 1: #starts backwards then eliminates 
+        removedFeature = None #tracks feature to get rid of 
+        best_accuracy = 0 #tracks best accuracy val
+
+        for i in currFeatures: #iterates thru the curr set of features 
+           tempFeature = [] #temp feature set not including the curr feature
+           for f in currFeatures:
+                if f != i:
+                    tempFeature.append(f)
+           accuracy = loocv(x, y, tempFeature)
+           print("\t"+ f"Using feature(s) {{{', '.join(str(f+1) for f in tempFeature)}}} accuracy is {accuracy * 100:.1f}%")
+           if accuracy > best_accuracy:
+                best_accuracy = accuracy
+                removedFeature = i #removes if features improves accuracy
+        #if feature was removed, update the curr set of features
+        if removedFeature is not None:
+            currFeatures.remove(removedFeature)
+            print(f"Feature set {{{', '.join(str(f+1) for f in currFeatures)}}} was best, accuracy is {best_accuracy * 100:.1f}%")
+            if best_accuracy > bestOverallAccuracy: #updates the best
+                bestOverallAccuracy = best_accuracy
+                bestOverallFeatures = list(currFeatures)
+            else: #added warning
+                 print("Warning: Accuracy has decreased! Continuing search in case of local maxima." + f"Feature set {{{', '.join(str(f+1) for f in currFeatures)}}} was best, accuracy is {best_accuracy * 100:.1f}%")
+
+    print(f"\nFinished search!! The best feature subset is {{{', '.join(str(f+1) for f in bestOverallFeatures)}}}, which has an accuracy of {bestOverallAccuracy * 100:.1f}%")
 
 
 #def main
@@ -141,16 +176,40 @@ def main():
         exit()
     num_features = len(x[0])
     num_instances = len(x)
-    print(f"\nThis dataset has {num_features} features with {num_instances} instances.")
+    print(f"\nThis dataset has {num_features} features (not including the class attribute), with {num_instances} instances.")
 
+    print(f"\nRunning nearest neighbor with all {num_features} features, using \"leave-one-out\" evaluation, I get an accuracy of {loocv(x, y) * 100:.1f}%.")
+
+    print("Type the number of the algorithm you want to run.")
+    print("1) Forward Selection")
+    print("2) Backward Elimination")
+
+
+    choice = input().strip()
+
+    startTime = time.time() #timer start
+
+    if choice == "1":
+        forwardSelection(x, y)
+    elif choice == "2":
+        backwardsElimination(x, y)
+    else:
+        print("Invalid choice.")
+
+
+    endTime = time.time() #timer end
+    diff = endTime - startTime
+
+    # Output the total time taken
+    print(f"\nTotal time taken: {diff:.2f} seconds.")
+
+    #debugging code 
     # train_X = [[1, 2], [3, 4], [5, 6]]
     # train_y = [1, 1, 0]
     # test_point = [2, 3]
     # print("Predicted Label:", nearestNeighbor(train_X, train_y, test_point)) #testing NN
-
-   
     #forwardSelection(x, y) #works - testing for forward selection
-
+    #backwardsElimination(x, y) #works - testing for backward elimination
 
 
 if __name__ == '__main__':
